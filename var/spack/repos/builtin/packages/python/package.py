@@ -1319,7 +1319,7 @@ print(json.dumps(config))
             except (OSError, KeyError):
                 target = None
             if target:
-                os.symlink(target, dst)
+                os.symlink(os.path.relpath(target, os.path.dirname(dst)), dst)
             else:
                 view.link(src, dst, spec=self.spec)
 
