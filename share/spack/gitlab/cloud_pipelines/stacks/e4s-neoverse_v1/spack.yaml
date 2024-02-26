@@ -15,7 +15,7 @@ spack:
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
@@ -31,8 +31,6 @@ spack:
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
     xz:
       variants: +pic
-    mesa:
-      version: [21.3.8]
     mpi:
       require: mpich
     mpich:
@@ -86,7 +84,7 @@ spack:
   - gmp
   - gotcha
   - gptune ~mpispawn
-  - gromacs +cp2k ^cp2k build_system=cmake
+  - gromacs +cp2k ^cp2k+dlaf build_system=cmake
   - h5bench
   - hdf5-vol-async
   - hdf5-vol-cache
@@ -182,6 +180,27 @@ spack:
   # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp # py-numcodecs@0.7.3: gcc: error: unrecognized command-line option '-mno-sse2'
   # - variorum                      # variorum: https://github.com/spack/spack/issues/38786
 
+  # PYTHON PACKAGES
+  - opencv +python3
+  - py-horovod
+  - py-jax
+  - py-jupyterlab
+  - py-matplotlib
+  - py-mpi4py
+  - py-notebook
+  - py-numba
+  - py-numpy
+  - py-openai
+  - py-pandas
+  - py-plotly
+  - py-pooch
+  - py-pytest
+  - py-scikit-learn
+  - py-scipy
+  - py-seaborn
+  - py-tensorflow
+  - py-torch
+
   # CUDA NOARCH
   - flux-core +cuda
   - hpctoolkit +cuda
@@ -199,6 +218,7 @@ spack:
   - chai ~benchmarks ~tests +cuda cuda_arch=75 ^umpire ~shared
   - flecsi +cuda cuda_arch=75
   - ginkgo +cuda cuda_arch=75
+  - gromacs +cuda cuda_arch=75
   - heffte +cuda cuda_arch=75
   - hpx +cuda cuda_arch=75
   - hypre +cuda cuda_arch=75
@@ -244,6 +264,7 @@ spack:
   - chai ~benchmarks ~tests +cuda cuda_arch=80 ^umpire ~shared
   - flecsi +cuda cuda_arch=80
   - ginkgo +cuda cuda_arch=80
+  - gromacs +cuda cuda_arch=80
   - heffte +cuda cuda_arch=80
   - hpx +cuda cuda_arch=80
   - hypre +cuda cuda_arch=80
@@ -289,6 +310,7 @@ spack:
   - chai ~benchmarks ~tests +cuda cuda_arch=90 ^umpire ~shared
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
+  - gromacs +cuda cuda_arch=90
   - heffte +cuda cuda_arch=90
   - hpx +cuda cuda_arch=90
   - kokkos +wrapper +cuda cuda_arch=90
