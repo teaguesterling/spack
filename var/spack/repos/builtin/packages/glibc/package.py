@@ -25,8 +25,11 @@ class Glibc(AutotoolsPackageNoDep, GNUMirrorPackageNoDep):
     maintainers("haampie")
 
     build_directory = "build"
+    tags = ["runtime"]
 
     license("LGPL-2.1-or-later")
+
+    provides("libc")
 
     version("master", branch="master")
     version("2.39", sha256="97f84f3b7588cd54093a6f6389b0c1a81e70d99708d74963a2e3eab7c7dc942d")
@@ -233,6 +236,7 @@ class Glibc(AutotoolsPackageNoDep, GNUMirrorPackageNoDep):
     def add_linux_headers(self):
         cp = which("cp")
         cp('-r', self.spec['linux-headers'].prefix.include, self.spec.prefix)
+
     @run_after("install")
     def install_locales(self):
         if self.spec.satisfies("os=spack"):
@@ -273,3 +277,8 @@ class Glibc(AutotoolsPackageNoDep, GNUMirrorPackageNoDep):
             ldef("-i","zh_CN","-f","GB18030","zh_CN.GB18030")
             ldef("-i","zh_HK","-f","BIG5-HKSCS","zh_HK.BIG5-HKSCS")
             ldef("-i","zh_TW","-f","UTF-8","zh_TW.UTF-8")
+
+    @property
+    def libs(self):
+        return LibraryList([])
+
