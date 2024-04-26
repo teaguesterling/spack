@@ -18,7 +18,6 @@ from llnl.util.symlink import readlink
 
 import spack.platforms
 import spack.util.executable
-from spack.build_environment import dso_suffix
 from spack.operating_systems.mac_os import macos_sdk_path, macos_version
 from spack.package import *
 
@@ -1145,7 +1144,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     @property
     def spec_dir(self):
         # e.g. lib/gcc/x86_64-unknown-linux-gnu/4.9.2
-        spec_dir = glob.glob("{0}/gcc/*/*".format(self.prefix.lib))
+        spec_dir = glob.glob(f"{self.prefix.lib}/gcc/*/*")
         return spec_dir[0] if spec_dir else None
 
     @run_after("install")
@@ -1198,11 +1197,8 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         ``--specs=norpath.spec`` to disable the automatic rpath and restore
         the behavior of ``LD_RUN_PATH``."""
         if not self.spec_dir:
-            tty.warn(
-                "Could not install specs for {0}.".format(self.spec.format("{name}{@version}"))
-            )
+            tty.warn(f"Could not install specs for {self.spec.format('{name}{@version}')}.")
             return
-
 
         sysroot_target = '{}-spack-linux-gnu'.format(
                 self.spec.architecture.target.microarchitecture.family.name
@@ -1232,7 +1228,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         if not rpath_libdirs:
             # No shared libraries
             tty.warn("No dynamic libraries found in lib/lib64")
-            return
+            rpath_dir = None
 
         add_sysroot = self.spec.satisfies("os=spack")
         with open(specs_file, "w") as out:
@@ -1277,7 +1273,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
                 out.write("*spack_libxcrypt:\n")
                 out.write(self.spec['libxcrypt'].prefix)
         set_install_permissions(specs_file)
-        tty.info("Wrote new spec file to {0}".format(specs_file))
+        tty.info(f"Wrote new spec file to {specs_file}")
 
     def setup_run_environment(self, env):
         # Search prefix directory for possibly modified compiler names
