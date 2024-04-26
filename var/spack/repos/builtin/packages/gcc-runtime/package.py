@@ -24,7 +24,7 @@ class GccRuntime(PackageNoDep):
     tags = ["runtime"]
 
     # gcc-runtime versions are declared dynamically
-    skip_version_audit = ["platform=linux", "platform=darwin"]
+    skip_version_audit = ["platform=linux", "platform=darwin", "platform=windows"]
 
     maintainers("haampie")
 
