@@ -27,6 +27,10 @@ class Glibc(AutotoolsPackageNoDep, GNUMirrorPackageNoDep):
     build_directory = "build"
     tags = ["runtime"]
 
+    # This is used when the package is external and we need to find the actual default include path
+    # which may be in a multiarch subdir.
+    representative_headers = ["ieee754.h"]
+
     license("LGPL-2.1-or-later")
 
     provides("libc")
