@@ -1492,6 +1492,4 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
         if relocation_args:
             with open(specs_file, "a") as f:
-                print("*self_spec:", file=f)
-                print(f"+ {' '.join(relocation_args)}", file=f)
-                print(file=f)
+                f.write(f"*self_spec:\n+ {' '.join(relocation_args)}\n\n")
