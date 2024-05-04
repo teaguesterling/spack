@@ -287,3 +287,6 @@ class Glibc(AutotoolsPackageNoDep, GNUMirrorPackageNoDep):
     def libs(self):
         return LibraryList([])
 
+    @property
+    def headers(self):
+        return HeaderList([])
