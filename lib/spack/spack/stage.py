@@ -955,9 +955,9 @@ def purge(builds=True, resources=False):
     root = get_stage_root()
     if os.path.isdir(root):
         for stage_dir in os.listdir(root):
-            is_build_stage = stage_dir.startswith(stage_prefix) or stage_dir == ".lock"
-            is_resource_stage = stage_dir.startswith(resource_prefix)
-            if builds and is_build_stage or resources and is_resource_stage:
+            rm_build_stage = builds and stage_dir.startswith(stage_prefix)
+            rm_resource_stage = resources and stage_dir.startswith(resource_prefix)
+            if rm_build_stage or rm_resource_stage or stage_dir == ".lock":
                 stage_path = os.path.join(root, stage_dir)
                 if os.path.isdir(stage_path):
                     remove_linked_tree(stage_path)
