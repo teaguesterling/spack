@@ -950,25 +950,14 @@ def ensure_access(file):
         tty.die("Insufficient permissions for %s" % file)
 
 
-def purge():
-    """Remove all build directories in the top-level stage path."""
+def purge(builds=True, resources=False):
+    """Remove all build and/or resource directiories in the top-level stage path."""
     root = get_stage_root()
     if os.path.isdir(root):
         for stage_dir in os.listdir(root):
-            if stage_dir.startswith(stage_prefix) or stage_dir == ".lock":
-                stage_path = os.path.join(root, stage_dir)
-                if os.path.isdir(stage_path):
-                    remove_linked_tree(stage_path)
-                else:
-                    os.remove(stage_path)
-
-
-def purge_resources():
-    """Remove all resource directories in the top-level stage path."""
-    root = get_stage_root()
-    if os.path.isdir(root):
-        for stage_dir in os.listdir(root):
-            if stage_dir.startswith(resource_prefix):
+            is_build_stage = stage_dir.startswith(stage_prefix) or stage_dir == ".lock"
+            is_resource_stage = stage_dir.startswith(resource_prefix)
+            if builds and is_build_stage or resources and is_resource_stage:
                 stage_path = os.path.join(root, stage_dir)
                 if os.path.isdir(stage_path):
                     remove_linked_tree(stage_path)

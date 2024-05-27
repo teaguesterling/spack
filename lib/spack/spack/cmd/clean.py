@@ -117,17 +117,16 @@ def clean(parser, args):
             tty.msg(msg.format(spec.short_spec))
             spec.package.do_clean()
 
-    if args.stage:
-        tty.msg("Removing all temporary build stages")
-        spack.stage.purge()
+    if args.stage or args.resources:
+        if args.stage:
+            tty.msg("Removing all temporary build stages")
+        if args.resources:
+            tty.msg("Removing all cached resources")
+        spack.stage.purge(builds=args.stage, resources=args.resources)
 
     if args.downloads:
         tty.msg("Removing cached downloads")
         spack.caches.FETCH_CACHE.destroy()
-
-    if args.resources:
-        tty.msg("Removing cached resources")
-        spack.stage.purge_resources()
 
     if args.failures:
         tty.msg("Removing install failure marks")
