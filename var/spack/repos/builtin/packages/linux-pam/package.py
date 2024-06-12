@@ -21,22 +21,14 @@ class LinuxPam(AutotoolsPackage):
     version("1.3.1", sha256="eff47a4ecd833fbf18de9686632a70ee8d0794b79aecb217ebd0ce11db4cd0db")
 
     depends_on("libtirpc")
-
-    depends_on("m4", type="build")
-    depends_on("autoconf", type="build")
-    depends_on("automake", type="build")
-    depends_on("libtool", type="build")
-
-    def flag_handler(self, name, flags):
-        if name == "ldflags":
-            flags.append("-lintl")  # spack/spack#44637
-        return (flags, None, None)
+    depends_on("libxcrypt")
 
     def configure_args(self):
         config_args = [
-            "--includedir=" + self.prefix.include.security,
+            f"--includedir={self.prefix.include.security}",
             # need docbook dep without this
             "--disable-regenerate-docu",
+            "--disable-nls",
             "--disable-doc",
         ]
         return config_args
