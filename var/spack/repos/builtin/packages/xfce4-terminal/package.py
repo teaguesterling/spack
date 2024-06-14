@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.package import *
+
 # ----------------------------------------------------------------------------
 # If you submit this package back to Spack as a pull request,
 # please first remove this boilerplate and all FIXME comments.
@@ -19,7 +21,6 @@
 #
 # See the Spack documentation for more information on packaging.
 # ----------------------------------------------------------------------------
-
 from spack.package import *
 
 
@@ -38,10 +39,11 @@ class Xfce4Terminal(AutotoolsPackage):
     version("1.1.1", sha256="5ab5c9b49c00be29f0be4eee5ccfa5073b16f2456185270265a9324549080aa6")
     version("1.1.0", sha256="40823377242b9b09749f5d4a550f41d465153c235c31f34052f804d3453ad4a3")
 
+    depends_on("intltool@0.35:")
+
     depends_on("glib@2.44:")
     depends_on("gtkplus@3.22:")
     depends_on("pcre2@10.00:")
     depends_on("libxfce4ui@4.17:")
     depends_on("xfconf@4.16:")
     depends_on("libx11@1.6.7:")
-
