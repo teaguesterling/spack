@@ -43,4 +43,3 @@ class Xfce4Core(BundlePackage):
         depends_on("xfwm4@4.16")
         depends_on("xfce4-appfinder@4.16")
         depends_on("tumbler@4.16")
-
