@@ -21,6 +21,10 @@ class Vte(MesonPackage):
     version("0.73.99", sha256="a4dedc1c8f3f62a3bff5c5da1dc2458f3f8cc30e884426f512f932aa37361e94")
     version("0.72.4", sha256="aaee5620d654c83a3298bce89852259188fdc79c15c121aa5d316cf5a2500b3f")
     version("0.70.6", sha256="caf4bfc8f02b633bc16658559ced98101e82da4efb80b72ff3ef7d98325e2aa8")
+    version("0.69.99", sha256="421aa9552b5c1f895da0ea7217b851ac852ba0e39bbecf3ada02a89887b5c977")
+    version("0.66.3", sha256="5f1d61ddf4352ec64a1c27c1625e312e7944e08d622e7545efe73aac4612d04f")
+    version("0.65.91", sha256="c3f44f53c7587ee6976598712234ec3d3e2e422e9239cad60b058e3ac3677760")
+    version("0.64.2", sha256="ec969366abad26ff5236a6fdf9a2eefe0aaf9a6f691ab7e5e26698403a86ec57")
 
     variant("icu", default=True, description="Build with icu4u support")
     variant("gnutls", default=True, description="Build with gnutls support")
@@ -45,7 +49,7 @@ class Vte(MesonPackage):
     depends_on("cairo@1:")
     depends_on("lz4@1.9")
 
-    conflicts("%gcc@:9", when="@0.74:")
+    conflicts("%gcc@:9", when="@0.70:")
 
     def true_or_false(self, arg, activation_value="true", variant=None):
         deactivation_value = "false"
