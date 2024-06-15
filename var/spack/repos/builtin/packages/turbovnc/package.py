@@ -44,6 +44,7 @@ class Turbovnc(CMakePackage):
 
     depends_on("openjdk@11:", when="+java")
     depends_on("openssl", when="+openssl")
+    depends_on("novnc", when="+web", type="run")
 
     with when("+libs"):
         depends_on("zlib-api")
