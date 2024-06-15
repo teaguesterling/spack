@@ -45,7 +45,7 @@ class Vte(MesonPackage):
     depends_on("cairo@1:")
     depends_on("lz4@1.9")
 
-    conficts("%gcc@:9", when="@0.76:")
+    conflicts("%gcc@:9", when="@0.76:")
 
     def true_or_false(self, arg, activation_value="true", variant=None):
         deactivation_value = "false"
