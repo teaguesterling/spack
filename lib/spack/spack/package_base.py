@@ -506,7 +506,7 @@ class RedistributionMixin:
         return True
 
 
-class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass=PackageMeta):
+class PackageBaseNoDep(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass=PackageMeta):
     """This is the superclass for all spack packages.
 
     ***The Package class***
@@ -1022,7 +1022,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             version: the version for which a URL is sought
         """
         uf = None
-        if type(self).url_for_version != PackageBase.url_for_version:
+        if type(self).url_for_version != PackageBaseNoDep.url_for_version:
             uf = self.url_for_version
         return self._implement_all_urls_for_version(version, uf)
 
@@ -2246,7 +2246,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     @property
     def flag_handler(self) -> FLAG_HANDLER_TYPE:
         if self._flag_handler is None:
-            self._flag_handler = PackageBase.inject_flags
+            self._flag_handler = PackageBaseNoDep.inject_flags
         return self._flag_handler
 
     @flag_handler.setter
@@ -2362,7 +2362,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     def do_uninstall(self, force=False):
         """Uninstall this package by spec."""
         # delegate to instance-less method.
-        PackageBase.uninstall_by_spec(self.spec, force)
+        PackageBaseNoDep.uninstall_by_spec(self.spec, force)
 
     def do_deprecate(self, deprecator, link_fn):
         """Deprecate this package in favor of deprecator spec"""
@@ -2390,7 +2390,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
             deprecated.package.do_deprecate(deprecator, link_fn)
 
         # Now that we've handled metadata, uninstall and replace with link
-        PackageBase.uninstall_by_spec(spec, force=True, deprecator=deprecator)
+        PackageBaseNoDep.uninstall_by_spec(spec, force=True, deprecator=deprecator)
         link_fn(deprecator.prefix, spec.prefix)
 
     def _check_extendable(self):
@@ -2508,6 +2508,9 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
 def add_base_deps():
     spack.directives.depends_on("spackos-base", when="os=spack")
 
+
+class PackageBase(PackageBaseNoDep):
+    add_base_deps()
 
 
 inject_flags = PackageBase.inject_flags
