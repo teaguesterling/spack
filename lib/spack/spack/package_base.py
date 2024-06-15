@@ -2509,9 +2509,6 @@ def add_base_deps():
     spack.directives.depends_on("spackos-base", when="os=spack")
 
 
-class PackageBase(PackageBaseNoDep):
-    add_base_deps()
-
 
 inject_flags = PackageBase.inject_flags
 env_flags = PackageBase.env_flags
