@@ -47,3 +47,5 @@ class Xfce4Terminal(AutotoolsPackage):
     depends_on("libxfce4ui@4.17:")
     depends_on("xfconf@4.16:")
     depends_on("libx11@1.6.7:")
+    depends_on("vte@0.51.3:")
+
