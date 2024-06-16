@@ -33,7 +33,7 @@ spack:
   - bison
   - perl
   - vim +python
-  - nano
+  # - nano
   - which
   # if building outside of spackos, python somehow grabs something out of the
   # local include paths, build like this:
