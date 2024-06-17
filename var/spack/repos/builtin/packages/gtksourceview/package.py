@@ -38,6 +38,7 @@ class Gtksourceview(AutotoolsPackage):
     depends_on("gdk-pixbuf")
     depends_on("atk")
     depends_on("iconv")
+    depends_on("gtk-doc")
 
     def url_for_version(self, version):
         url = "https://download.gnome.org/sources/gtksourceview/"
@@ -56,8 +57,3 @@ class Gtksourceview(AutotoolsPackage):
     def setup_run_environment(self, env):
         env.prepend_path("XDG_DATA_DIRS", self.prefix.share)
 
-    # TODO: If https://github.com/spack/spack/pull/12344 is merged, this
-    # method is unnecessary.
-    def autoreconf(self, spec, prefix):
-        autoreconf = which("autoreconf")
-        autoreconf("-ifv")
