@@ -392,7 +392,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     conflicts("@:12", when="%apple-clang@14:14.0")
 
     with when("os=spack"):
-        patch("./no-sys-dirs.patch", when="@:12")
+        patch("./no-sys-dirs.patch", when="@:11")
         patch("./gcc12-no-sys-dirs.patch", when="@12:")
 
     if sys.platform == "darwin":
