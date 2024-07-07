@@ -64,7 +64,8 @@ class Thunar(AutotoolsPackage):
     def flag_handler(self, name, flags):
         if name == "cflags" and self.spec.satisfies("@4.18"):
             # Fails to check in xcfe4 include subdirectory for the libxfce4kbd-private-3 tree
-            env.append_flags("CPPFLAGS", f"-I{self.spec['libxfce4ui'].home.include.xfce4}")
+            flags.append(f"-I{self.spec['libxfce4ui'].home.include.xfce4}")
+        return (flags, None, None)
 
     def configure_args(self):
         args = []
