@@ -21,32 +21,46 @@ class Libcanberra(AutotoolsPackage):
     # TODO: Add variants and dependencies for the following audio support:
     # ALSA, OSS, PulseAudio, udev, GStreamer, null, GTK3+ , tdb
 
+    variant("oss", default=False, description="Enable OSS support")
+    variant("alsa", default=True, description="Enable ALSA support")
     variant("gtk", default=False, description="Enable optional GTK+ support")
+    variant("gtk3", default=False, description="Enable optional GTK+ 3 support")
+    variant("pulse", default=False, description="Enable optional pulseaudio support")
+    variant("udev", default=False, description="Enable optional udev support")
 
-    depends_on("libxrender", when="+gtk")
-    depends_on("libxext", when="+gtk")
-    depends_on("libx11", when="+gtk")
-    depends_on("libxinerama", when="+gtk")
-    depends_on("libxrandr", when="+gtk")
-    depends_on("libxcursor", when="+gtk")
-    depends_on("libxcomposite", when="+gtk")
-    depends_on("libxdamage", when="+gtk")
-    depends_on("libxfixes", when="+gtk")
-    depends_on("libxcb", when="+gtk")
-    depends_on("libxau", when="+gtk")
-    depends_on("gtkplus", when="+gtk")
+    with default_args(type=("build", "link", "run")):
+        depends_on("libvorbis")
+        depends_on("alsa-lib", when="+alsa")
+        with when("+gtk3"):
+            depends_on("gtkplus")
+            depends_on("gtkplus@3", when="+gtk3")
+            depends_on("libxrender")
+            depends_on("libxext")
+            depends_on("libx11")
+            depends_on("libxinerama")
+            depends_on("libxrandr")
+            depends_on("libxcursor")
+            depends_on("libxcomposite")
+            depends_on("libxdamage")
+            depends_on("libxfixes")
+            depends_on("libxcb")
+            depends_on("libxau")
 
-    depends_on("libvorbis")
-    depends_on("libtool", type="build")
+        depends_on("pulseaudio", when="+pulse")
+        depends_on("systemd", when="udev")
 
-    depends_on("pkgconfig", type="build")
+    with default_args(type=("build", "link")):
+        depends_on("libtool")
+        depends_on("pkgconfig")
 
     def configure_args(self):
         args = ["--enable-static"]
 
-        if "+gtk" in self.spec:
-            args.append("--enable-gtk")
-        else:
-            args.append("--disable-gtk")
+        args += self.enable_or_disable("oss")
+        args += self.enable_or_disable("alsa")
+        args += self.enable_or_disable("gtk")
+        args += self.enable_or_disable("gtk3")
+        args += self.enable_or_disable("pulse")
+        args += self.enable_or_disable("udev")
 
         return args
