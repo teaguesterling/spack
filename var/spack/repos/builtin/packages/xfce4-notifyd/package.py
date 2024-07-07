@@ -29,5 +29,6 @@ class Xfce4Notifyd(AutotoolsPackage):
     depends_on("libnotify@0.7:")
     depends_on("xfce4-panel@4.10.0:")
     depends_on("sqlite@3.34:")
-    depends_on("libcanberra@0.30:")
+    depends_on("libcanberra@0.30:+gtk3")
     depends_on("libtool")
+
