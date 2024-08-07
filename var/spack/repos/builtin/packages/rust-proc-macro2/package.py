@@ -6,7 +6,10 @@ from spack.package import *
 
 
 class RustProcMacro2(CargoPackage):
-    """A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case."""
+    """
+    A substitute implementation of the compiler's `proc_macro` API to decouple
+    token-based libraries from the procedural macro use case.
+    """
 
     homepage = "https://docs.rs/proc-macro2/latest/proc_macro2/"
     url = "https://github.com/dtolnay/proc-macro2/archive/refs/tags/1.0.86.tar.gz"

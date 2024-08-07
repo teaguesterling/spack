@@ -14,3 +14,6 @@ class RustHeck(CargoPackage):
     license("APACHE-2.0 OR MIT", checked_by="teaguesterling")
 
     version("0.5", commit="070693322aee7c5c7fbee7c9964bf8d7d3a29c96")
+
+    def build(self, spec, prefix):
+        cargo("install", "--root", "out", "--path", ".")

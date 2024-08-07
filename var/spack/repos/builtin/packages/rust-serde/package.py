@@ -19,8 +19,9 @@ class RustSerde(CargoPackage):
 
     variant("derive", default=False, description="Build with derive feature")
 
-    def build_args(self):
-        args = []
+    def build(self, spec, prefix):
+        args = ["install", "--root", "out", "--path", "test_suite"]
         if self.spec.satisfies("+derive"):
             args += ["--features", "derive"]
-        return args
+        cargo(*args)
+

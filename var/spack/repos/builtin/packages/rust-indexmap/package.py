@@ -6,7 +6,9 @@ from spack.package import *
 
 
 class RustIndexmap(CargoPackage):
-    """A hash table with consistent order and fast iteration; access items by key or sequence index"""
+    """
+    A hash table with consistent order and fast iteration; access items by key or sequence index
+    """
 
     homepage = "https://docs.rs/indexmap/"
     url = "https://github.com/indexmap-rs/indexmap/archive/refs/tags/2.2.6.tar.gz"

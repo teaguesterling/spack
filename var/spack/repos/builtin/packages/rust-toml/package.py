@@ -16,3 +16,4 @@ class RustToml(CargoPackage):
     version("0.22.16", sha256="8cdd73db2290c389f724605244f057c725e91bfd327521c1e566eaf11bd04a96")
 
     depends_on("rust@1.65:")
+
