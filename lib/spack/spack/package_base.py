@@ -507,7 +507,7 @@ class RedistributionMixin:
         return True
 
 
-class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass=PackageMeta):
+class PurePackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass=PackageMeta):
     """This is the superclass for all spack packages.
 
     ***The Package class***
@@ -2490,6 +2490,15 @@ class PackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metaclass
     @property
     def builder(self):
         return spack.builder.create(self)
+
+
+def add_package_base_dependencies():
+    # TODO: Make this configurable
+    spack.directives.depends_on("spackos-base", when="os=spackos")
+
+
+class PackageBase(PurePackageBase):
+    add_package_base_dependencies()
 
 
 inject_flags = PackageBase.inject_flags

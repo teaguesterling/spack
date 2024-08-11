@@ -7,7 +7,7 @@ import spack.directives
 import spack.package_base
 
 
-class BundlePackage(spack.package_base.PackageBase):
+class PureBundlePackage(spack.package_base.PurePackageBase):
     """General purpose bundle, or no-code, package class."""
 
     #: This attribute is used in UI queries that require to know which
@@ -21,6 +21,10 @@ class BundlePackage(spack.package_base.PackageBase):
     has_code = False
 
     spack.directives.build_system("bundle")
+
+
+class BundlePacakge(PureBundlePackage):
+    spack.package_base.add_package_base_dependencies()
 
 
 @spack.builder.builder("bundle")
