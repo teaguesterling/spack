@@ -3,13 +3,17 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
 import os
 
+from spack.build_systems.autotools import PureAutotoolsPackage
+from spack.build_systems.gnu import PureGNUMirrorPackage
 from spack.package import *
+from spack.package_base import spackos_stage_variants
 from spack.util.elf import delete_rpath
 
 
-class Glibc(AutotoolsPackage, GNUMirrorPackage):
+class Glibc(PureAutotoolsPackage, PureGNUMirrorPackage):
     """The GNU C Library provides many of the low-level components used
     directly by programs written in the C or C++ languages."""
 
@@ -20,7 +24,7 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
     maintainers("haampie")
 
     build_directory = "build"
-    tags = ["runtime"]
+    tags = ["build-tools", "runtime"]
 
     # This is used when the package is external and we need to find the actual default include path
     # which may be in a multiarch subdir.
@@ -68,8 +72,19 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
     version("2.6.1", sha256="6be7639ccad715d25eef560ce9d1637ef206fb9a162714f6ab8167fc0d971cae")
     version("2.5", sha256="16d3ac4e86eed75d85d80f1f214a6bd58d27f13590966b5ad0cc181df85a3493")
 
+    spackos_stage_variants()
+
+    variant(
+        "kernel-version",
+        choices=("3.7.0", "4.4.1"),
+        default="4.4.1",
+        description="What kernel version to build with",
+    )
+
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
+
+    provides("iconv", when="+spackos-stage-2")
 
     # Fix for newer GCC, related to -fno-common
     patch("locs.patch", when="@2.23:2.25")
@@ -167,24 +182,27 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
             string=True,
         )
 
-    depends_on("bison", type="build")
-    depends_on("texinfo", type="build")
-    depends_on("gettext", type="build")
-    depends_on("perl", type="build")
-    depends_on("gawk", type="build")
-    depends_on("sed", type="build")
-    depends_on("gmake", type="build")
+    # This is an absolutely wretched hack to allow building a glibc that doesn't pollute
+    # the new environment.  It should go away as soon as we have a way.
+    with when("~spackos-stage-2"):
+        depends_on("bison", type="build")
+        depends_on("texinfo", type="build")
+        depends_on("gettext", type="build")
+        depends_on("perl", type="build")
+        depends_on("gawk", type="build")
+        depends_on("sed", type="build")
+        depends_on("gmake", type="build")
 
-    # See 2d7ed98add14f75041499ac189696c9bd3d757fe
-    depends_on("gmake@:4.3", type="build", when="@:2.36")
-    # Since f2873d2da0ac9802e0b570e8e0b9e7e04a82bf55
-    depends_on("gmake@4.0:", type="build", when="@2.28:")
+        # See 2d7ed98add14f75041499ac189696c9bd3d757fe
+        depends_on("gmake@:4.3", type="build", when="@:2.36")
+        # Since f2873d2da0ac9802e0b570e8e0b9e7e04a82bf55
+        depends_on("gmake@4.0:", type="build", when="@2.28:")
 
-    # From 2.29: generates locale/C-translit.h
-    # before that it's a test dependency.
-    depends_on("python@3.4:", type="build", when="@2.29:")
+        # From 2.29: generates locale/C-translit.h
+        # before that it's a test dependency.
+        depends_on("python@3.4:", type="build", when="@2.29:")
 
-    depends_on("linux-headers")
+        depends_on("linux-headers")
 
     with when("@master"):
         depends_on("autoconf", type="build")
@@ -192,11 +210,24 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
         depends_on("libtool", type="build")
 
     def configure_args(self):
-        return [
-            "--enable-kernel=4.4.1",
-            "--with-headers={}".format(self.spec["linux-headers"].prefix.include),
+        args = [
+            f"--enable-kernel={self.spec.variants['kernel-version'].value}",
+            f"--with-headers={self.spec['linux-headers'].prefix.include}",
             "--without-selinux",
         ]
+        if self.spec.satisfies("os=spackos"):
+            args += [f"--host={self.spec.target_triple}", f"--build={self.spec.host_triple}"]
+        return args
+
+    @property
+    def ld_so(self):
+        ld = self.spec.prefix.lib.join("ld-linux")
+        opts = glob.glob(f"{ld}*.so*")
+        return opts[0] if opts else None
+
+    @property
+    def dynamic_linker_flagg(self):
+        return f"-Wl,--dynamic-linker={self.ld_so}"
 
     def build(self, spec, prefix):
         # 1. build just ld.so
@@ -206,6 +237,57 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
             make("-C", "..", f"objdir={os.getcwd()}", "lib")
             delete_rpath(join_path("elf", "ld.so"))
             make()
+
+    def install(self, spec, prefix):
+        # Add linux headers
+        cp = which("cp")
+        cp("-r", spec["linux-headers"].prefix.include, prefix.include)
+
+        if spec.satisfies("os=spackos"):
+            _ldef = Executable(self.prefix.bin.localedef)
+
+            def ldef(_i, _f, _l, **kwargs):
+                _ldef("-i", _i, "-f", _f, _l, **kwargs)
+
+            mkdirp(self.spec.prefix.lib.locale)
+            for i, f, l in [("POSIX", "UTF-8", "C.UTF-8"), ("ja_JP", "SHIFT_JIS", "ja_JP.SJIS")]:
+                ldef(i, f, l, fail_on_error=False)
+            for i, f, l in [
+                ldef("cs_CZ", "UTF-8", "cs_CZ.UTF-8"),
+                ldef("de_DE", "ISO-8859-1", "de_DE"),
+                ldef("de_DE@euro", "ISO-8859-15", "de_DE@euro"),
+                ldef("de_DE", "UTF-8", "de_DE.UTF-8"),
+                ldef("el_GR", "ISO-8859-7", "el_GR"),
+                ldef("en_GB", "ISO-8859-1", "en_GB"),
+                ldef("en_GB", "UTF-8", "en_GB.UTF-8"),
+                ldef("en_HK", "ISO-8859-1", "en_HK"),
+                ldef("en_PH", "ISO-8859-1", "en_PH"),
+                ldef("en_US", "ISO-8859-1", "en_US"),
+                ldef("en_US", "UTF-8", "en_US.UTF-8"),
+                ldef("es_ES", "ISO-8859-15", "es_ES@euro"),
+                ldef("es_MX", "ISO-8859-1", "es_MX"),
+                ldef("fa_IR", "UTF-8", "fa_IR"),
+                ldef("fr_FR", "ISO-8859-1", "fr_FR"),
+                ldef("fr_FR@euro", "ISO-8859-15", "fr_FR@euro"),
+                ldef("fr_FR", "UTF-8", "fr_FR.UTF-8"),
+                ldef("is_IS", "ISO-8859-1", "is_IS"),
+                ldef("is_IS", "UTF-8", "is_IS.UTF-8"),
+                ldef("it_IT", "ISO-8859-1", "it_IT"),
+                ldef("it_IT", "ISO-8859-15", "it_IT@euro"),
+                ldef("it_IT", "UTF-8", "it_IT.UTF-8"),
+                ldef("ja_JP", "EUC-JP", "ja_JP"),
+                ldef("ja_JP", "UTF-8", "ja_JP.UTF-8"),
+                ldef("nl_NL@euro", "ISO-8859-15", "nl_NL@euro"),
+                ldef("ru_RU", "KOI8-R", "ru_RU.KOI8-R"),
+                ldef("ru_RU", "UTF-8", "ru_RU.UTF-8"),
+                ldef("se_NO", "UTF-8", "se_NO.UTF-8"),
+                ldef("ta_IN", "UTF-8", "ta_IN.UTF-8"),
+                ldef("tr_TR", "UTF-8", "tr_TR.UTF-8"),
+                ldef("zh_CN", "GB18030", "zh_CN.GB18030"),
+                ldef("zh_HK", "BIG5-HKSCS", "zh_HK.BIG5-HKSCS"),
+                ldef("zh_TW", "UTF-8", "zh_TW.UTF-8"),
+            ]:
+                ldef(i, f, l)
 
     @property
     def libs(self):
