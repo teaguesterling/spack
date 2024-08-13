@@ -16,6 +16,7 @@ from typing import Dict, List
 import llnl.util.tty as tty
 from llnl.util.lang import dedupe
 
+import spack.error
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
 from spack.util.prefix import Prefix
@@ -449,6 +450,12 @@ class Python(Package):
             r"^(.*)setup\.py(.*)((build)|(install))(.*)$", r"\1setup.py\2 --no-user-cfg \3\6"
         )
 
+        if self.spec.satisfies("os=spackos"):
+            # we don't want explicitly injected /usr/include and similar if building for
+            # portability.  Cribbed from nixpkgs, converted to spackese
+            for p in ("/usr", "/sw", "/opt", "/pkg"):
+                filter_file(p, "/nonexistant/path", "setup.py")
+
     def setup_build_environment(self, env):
         spec = self.spec
 
@@ -596,7 +603,13 @@ class Python(Package):
             # Currently, the only way to get SpecBuildInterface wrappers of the
             # dependencies (which we need to get their 'libs') is to get them
             # using spec.__getitem__.
-            ldflags = " ".join(spec[dep.name].libs.search_flags for dep in link_deps)
+            flags_list = []
+            for dep in link_deps:
+                try:
+                    flags_list.append(spec[dep.name].libs.search_flags)
+                except spack.error.NoLibrariesError:
+                    pass
+            ldflags = " ".join(flags_list)
 
             config_args.extend(["CPPFLAGS=" + cppflags, "LDFLAGS=" + ldflags])
 
