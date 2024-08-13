@@ -76,7 +76,7 @@ class Glibc(PureAutotoolsPackage, PureGNUMirrorPackage):
 
     variant(
         "kernel-version",
-        choices=("3.7.0", "4.4.1"),
+        values=("3.7.0", "4.4.1"),
         default="4.4.1",
         description="What kernel version to build with",
     )
