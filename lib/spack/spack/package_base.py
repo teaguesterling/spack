@@ -2492,10 +2492,10 @@ class PurePackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metac
         return spack.builder.create(self)
 
 
-def spackos_stage_variants(only_stages=("1", "2", "3", "4"), **kwargs):
+def spackos_stage_variants(*stages, **kwargs):
     for stage in stages:
         spack.directives.variant(
-            "spackos-stage-{stage}",
+            f"spackos-stage-{stage}",
             default=False,
             sticy=True,
             description=(
