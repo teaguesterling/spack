@@ -13,8 +13,8 @@ class SpackosBase(PureBundlePackage):
     version("0.2.0")
 
     with when("os=spackos"):
-        depends_on("glibc+spack-os-stage=2")
-        depends_on("libxcrypt+spack-os-stage=2")
+        depends_on("glibc+spackos-stage-2")
+        depends_on("libxcrypt+spackos-stage-2")
 
     @property
     def os_info(self):
