@@ -10,11 +10,12 @@ from macholib import MachO, mach_o
 
 from llnl.util import tty
 
+from spack.build_systems.generic import PurePackage
 from spack.package import *
 from spack.util.elf import parse_elf
 
 
-class GccRuntime(Package):
+class GccRuntime(PurePackage):
     """Package for GCC compiler runtime libraries"""
 
     homepage = "https://gcc.gnu.org"
