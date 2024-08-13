@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.package_base import spackos_stage_variants
 
 
 class Gmp(AutotoolsPackage, GNUMirrorPackage):
@@ -43,6 +44,9 @@ class Gmp(AutotoolsPackage, GNUMirrorPackage):
         description="Build shared libs, static libs or both",
     )
     variant("cxx", default=True, description="Enable C++ support")
+    spackos_stage_variants(only_stages=[2])
+
+    conflicts("+cxx", when="+spackos-stage-2", msg="C++ not supported in SpackOS pahse 2")
 
     # avoid using register x18 on aarch64 machines to prevent segfaults
     # https://gmplib.org/repo/gmp/raw-rev/5f32dbc41afc
