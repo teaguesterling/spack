@@ -93,7 +93,7 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    spackos_stage_variants()
+    spackos_stage_variants(only_stages=["1"])
 
     variant("plugins", default=True, description="enable plugins, needed for gold linker")
     # When you build ld.gold you automatically get ld, even when you add the
