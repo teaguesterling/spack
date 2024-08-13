@@ -815,6 +815,8 @@ class Llvm(CMakePackage, CudaPackage, CompilerPackage):
             define("CLANG_DEFAULT_OPENMP_RUNTIME", "libomp"),
             define("LIBOMP_USE_HWLOC", True),
             define("LIBOMP_HWLOC_INSTALL_DIR", spec["hwloc"].prefix),
+            # There is no default for this, matching gentoo for consistency
+            define("CLANG_CONFIG_FILE_SYSTEM_DIR", self.prefix.etc.clang),
             from_variant("LLVM_ENABLE_ZSTD", "zstd"),
         ]
 
