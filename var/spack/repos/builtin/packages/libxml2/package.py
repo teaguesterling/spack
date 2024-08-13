@@ -56,6 +56,9 @@ class Libxml2(AutotoolsPackage, NMakePackage):
     # conditional on non Windows, but rather than specify for each platform
     # specify for non Windows builder, which has equivalent effect
     depends_on("iconv", when="build_system=autotools")
+    depends_on("libtool", when="build_system=autotools", type="build")
+    depends_on("autoconf", when="build_system=autotools", type="build")
+    depends_on("automake", when="build_system=autotools", type="build")
     depends_on("zlib-api")
     depends_on("xz")
 
@@ -214,6 +217,8 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
 
 
 class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
+    force_autoreconf = True
+
     def configure_args(self):
         spec = self.spec
 
