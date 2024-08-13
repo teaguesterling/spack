@@ -72,7 +72,7 @@ class Glibc(PureAutotoolsPackage, PureGNUMirrorPackage):
     version("2.6.1", sha256="6be7639ccad715d25eef560ce9d1637ef206fb9a162714f6ab8167fc0d971cae")
     version("2.5", sha256="16d3ac4e86eed75d85d80f1f214a6bd58d27f13590966b5ad0cc181df85a3493")
 
-    spackos_stage_variants()
+    spackos_stage_variants("2")
 
     variant(
         "kernel-version",
