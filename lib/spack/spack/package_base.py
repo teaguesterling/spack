@@ -2497,7 +2497,7 @@ def spackos_stage_variants(*stages, **kwargs):
         spack.directives.variant(
             f"spackos-stage-{stage}",
             default=False,
-            sticy=True,
+            sticky=True,
             description=(
                 "SpackOS bootstrap build stage {stage}. "
                 "DO NOT USE unless you know what this means!"
