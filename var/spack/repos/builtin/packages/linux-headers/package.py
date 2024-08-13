@@ -5,10 +5,11 @@
 
 import os
 
+from spack.build_systems.generic import PurePackage
 from spack.package import *
 
 
-class LinuxHeaders(Package):
+class LinuxHeaders(PurePackage):
     """The Linux kernel headers."""
 
     homepage = "https://www.kernel.org/"
