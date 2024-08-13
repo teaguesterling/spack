@@ -3,15 +3,17 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.autotools import PureAutotoolsPackage
 from spack.package import *
+from spack.package_base import spackos_stage_variants
 
 
-class Libxcrypt(AutotoolsPackage):
+class Libxcrypt(PureAutotoolsPackage):
     """libxcrypt is a modern library for one-way hashing of passwords."""
 
     homepage = "https://github.com/besser82/libxcrypt"
     url = "https://github.com/besser82/libxcrypt/releases/download/v4.4.30/libxcrypt-4.4.30.tar.xz"
-    tags = ["build-tools"]
+    tags = ["build-tools", "runtime"]
     maintainers("haampie")
 
     def url_for_version(self, version):
@@ -42,20 +44,23 @@ class Libxcrypt(AutotoolsPackage):
         when="@4.4.30:",
     )
 
+    spackos_stage_variants("2")
+
     patch("truncating-conversion.patch", when="@4.4.30")
 
-    with when("@:4.4.17"):
-        depends_on("autoconf", type="build")
-        depends_on("automake@1.14:", type="build")
-        depends_on("libtool", type="build")
-        depends_on("m4", type="build")
+    with when("~spackos-stage-2"):
+        with when("@:4.4.17"):
+            depends_on("autoconf", type="build")
+            depends_on("automake@1.14:", type="build")
+            depends_on("libtool", type="build")
+            depends_on("m4", type="build")
 
-    # Some distros have incomplete perl installs, +open catches that.
-    depends_on("perl@5.14.0: +open", type="build", when="@4.4.18:")
+        # Some distros have incomplete perl installs, +open catches that.
+        depends_on("perl@5.14.0: +open", type="build", when="@4.4.18:")
 
-    # Support Perl 5.38. todo: remove patch and update depends_on
-    # range once the commit ends up in a tagged release
-    depends_on("perl@:5.36", type="build", when="@:4.4.34")
+        # Support Perl 5.38. todo: remove patch and update depends_on
+        # range once the commit ends up in a tagged release
+        depends_on("perl@:5.36", type="build", when="@:4.4.34")
     patch("commit-95d56e0.patch", when="@4.4.35")
 
     def configure_args(self):
