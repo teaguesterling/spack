@@ -39,12 +39,14 @@ class Munge(AutotoolsPackage):
     depends_on("openssl")
     depends_on("libgcrypt")
     depends_on("bzip2")
+    depends_on("pkgconfig", type="build")
 
     def configure_args(self):
         args = []
         localstatedir = self.spec.variants["localstatedir"].value
         if localstatedir != "PREFIX/var":
             args.append("--localstatedir={0}".format(localstatedir))
+        args.append(f"--with-pkgconfigdir={self.spec.prefix.lib.pkgconfig}")
         return args
 
     def install(self, spec, prefix):
