@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.generic import PurePackage
 from spack.package import *
 
 
-class Gnuconfig(Package):
+class Gnuconfig(PurePackage):
     """
     The GNU config.guess and config.sub scripts versioned by timestamp.
     This package can be used as a build dependency for autotools packages that
