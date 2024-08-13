@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.build_systems.bundle import PureBundlePackage
 
 
 class SpackosBase(PureBundlePackage):
