@@ -9,7 +9,7 @@ import re
 
 import spack.build_systems.autotools
 from spack.package import *
-from spack.package.package_base import spackos_stage_variants
+from spack.package_base import spackos_stage_variants
 
 
 class Binutils(AutotoolsPackage, GNUMirrorPackage):
@@ -350,7 +350,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
                 flags.append("-lintl")
         return self.build_system_flags(name, flags)
 
-    @runafter("install")
+    @run_after("install")
     def link_arch_prefixes(self):
         """ensure unprefixed versions of all tools exist after building them"""
         prefix = f"{self.spec.target_triple}-"
