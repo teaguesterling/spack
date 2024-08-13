@@ -2492,6 +2492,20 @@ class PurePackageBase(WindowsRPath, PackageViewMixin, RedistributionMixin, metac
         return spack.builder.create(self)
 
 
+def spackos_stage_variants(stages=("1", "2", "3", "4"), **kwargs):
+    for stage in stages:
+        spack.directives.variant(
+            "spackos-stage-{stage}",
+            default=False,
+            sticy=True,
+            description=(
+                "SpackOS bootstrap build stage {stage}. "
+                "DO NOT USE unless you know what this means!"
+            ),
+            **kwargs,
+        )
+
+
 def add_package_base_dependencies():
     # TODO: Make this configurable
     spack.directives.depends_on("spackos-base", when="os=spackos")
