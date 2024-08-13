@@ -23,7 +23,7 @@ class PureBundlePackage(spack.package_base.PurePackageBase):
     spack.directives.build_system("bundle")
 
 
-class BundlePacakge(PureBundlePackage):
+class BundlePackage(PureBundlePackage):
     spack.package_base.add_package_base_dependencies()
 
 
