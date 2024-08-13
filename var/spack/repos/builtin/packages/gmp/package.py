@@ -44,7 +44,7 @@ class Gmp(AutotoolsPackage, GNUMirrorPackage):
         description="Build shared libs, static libs or both",
     )
     variant("cxx", default=True, description="Enable C++ support")
-    spackos_stage_variants(only_stages=[2])
+    spackos_stage_variants("2")
 
     conflicts("+cxx", when="+spackos-stage-2", msg="C++ not supported in SpackOS pahse 2")
 
