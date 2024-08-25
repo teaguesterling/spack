@@ -24,9 +24,12 @@ class Avro(CMakePackage):
     version("1.11.3", sha256="6ea787a83260a11b5a899aadd22f701e24138477cd7bf789614051a449dcc034")
 
     # Failing in examples for me
-    variant("c", default=False, description="Built the C library")
+    variant("c", default=True, description="Built the C library")
     variant("cxx", default=True, description="Built the C++ library")
-    # TODO: java, javascript, perl, python, ruby, rust?
+    #variant("perl", default=True, description="Built the Perl library")
+    #variant("python", default=True, description="Built the Python library")
+    variant("rust", default=False, description="Built the Rust library")
+    # TODO: java, javascript, perl, python, ruby
 
     # Had issues with linking in C lib on my build
     variant("snappy", default=True, description="Build with snappy support")
@@ -49,11 +52,24 @@ class Avro(CMakePackage):
     with when("+cxx"):
         depends_on("cxx", type="build")
         depends_on(
-            "boost@1.38:+iostreams+filesystem+system+program_options visibility=global", type=("build", "link")
+            "boost@1.38:+iostreams+filesystem+system+program_options+regex visibility=global", type=("build", "link")
         )
 
+    #with when("+perl"):
+    #    extends("perl")
+
+    #with when("+python"):
+    #    extends("python")
+
+    #with when("+rust"):
+    #    depends_on("rust", type="build")
+
     def cmake_variant_subdirs(self):
-        return [("build/c", "lang/c", [], "+c"), ("build/c++", "lang/c++", [], "+cxx")]
+        return [
+            ("build/c", "lang/c", [], "+c"), 
+            ("build/c++", "lang/c++", [], "+cxx"),
+            ("build/rust", "lang/rust", [], "+rust"),
+        ]
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
