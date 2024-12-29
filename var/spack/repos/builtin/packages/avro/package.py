@@ -8,6 +8,7 @@ import os
 
 from llnl.util import filesystem as fs
 
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -15,21 +16,21 @@ class Avro(CMakePackage):
     """Apache Avro data serialization system."""
 
     homepage = "https://www.apache.org/dyn/closer.cgi/avro/"
-    url = "https://dlcdn.apache.org/avro/avro-1.11.3/avro-src-1.11.3.tar.gz"
+    url = "https://github.com/apache/avro/archive/refs/tags/release-1.12.0.tar.gz"
 
     maintainers("teaguesterling")
 
     license("APACHE-2.0", checked_by="teaguesterling")
 
+    version("1.12.0", sha256="08bd6a53766246b66d9c8cd167a8fad227c2c8581ca2f3586bf1d9538f3e8f7b")
     version("1.11.3", sha256="6ea787a83260a11b5a899aadd22f701e24138477cd7bf789614051a449dcc034")
 
-    # Failing in examples for me
+    list_url = "https://downloads.apache.org/avro/"
+    list_depth = 1
+
     variant("c", default=True, description="Built the C library")
     variant("cxx", default=True, description="Built the C++ library")
-    #variant("perl", default=True, description="Built the Perl library")
-    #variant("python", default=True, description="Built the Python library")
-    variant("rust", default=False, description="Built the Rust library")
-    # TODO: java, javascript, perl, python, ruby
+    # TODO: java, javascript, perl, python, ruby, rust
 
     # Had issues with linking in C lib on my build
     variant("snappy", default=True, description="Build with snappy support")
@@ -52,24 +53,12 @@ class Avro(CMakePackage):
     with when("+cxx"):
         depends_on("cxx", type="build")
         depends_on(
-            "boost@1.38:+iostreams+filesystem+system+program_options+regex visibility=global", type=("build", "link")
+            "boost@1.38:+iostreams+filesystem+system+program_options+regex visibility=global",
+            type=("build", "link"),
         )
 
-    #with when("+perl"):
-    #    extends("perl")
-
-    #with when("+python"):
-    #    extends("python")
-
-    #with when("+rust"):
-    #    depends_on("rust", type="build")
-
     def cmake_variant_subdirs(self):
-        return [
-            ("build/c", "lang/c", [], "+c"), 
-            ("build/c++", "lang/c++", [], "+cxx"),
-            ("build/rust", "lang/rust", [], "+rust"),
-        ]
+        return [("build/c", "lang/c", [], "+c"), ("build/c++", "lang/c++", [], "+cxx")]
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
