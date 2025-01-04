@@ -5,6 +5,7 @@
 
 import inspect
 import os
+import contextlib
 
 from llnl.util import filesystem as fs
 
@@ -30,7 +31,6 @@ class Avro(Package):
 
     variant("c", default=True, description="Built the C library")
     variant("cxx", default=True, description="Built the C++ library")
-    variant("rust", default=False, description="Build the Rust library")
     # TODO: java, javascript, perl, python, ruby, rust
 
     # Had issues with linking in C lib on my build
@@ -59,54 +59,48 @@ class Avro(Package):
         )
         depends_on("cmake@2.6:")
 
-    with when("+rust"):
-        depends_on("cargo", type="build")
-
-    def cmake_variant_subdirs(self):
+    @property
+    def variant_sub_builders(self):
         return [
-            ("build/c", "lang/c", [], "+c"), 
-            ("build/c++", "lang/c++", [], "+cxx"),
+            ("+c", CMakeBuilder, {"build_directory": "build/c", "root_cmakelists_dir": "lang/c"}),
+            ("+cxx", CMakeBuilder, {"build_directory": "build/c++", "root_cmakelists_dir": "lang/c++"}),
         ]
 
 
-class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
-    def cmake_subdir(self, pkg, spec, prefix, builddir, listdir, cmake_args, variant):
-        """Runs ``cmake`` in the build sub directory if variant is true"""
-        if spec.satisfies(variant):
-            options = self.std_cmake_args
-            options += self.cmake_args()
-            options += cmake_args
-            options.append(os.path.abspath(listdir))
-            with fs.working_dir(builddir, create=True):
-                inspect.getmodule(self.pkg).cmake(*options)
+class BuilderOverrider:
+    # This is a hack to allow us to build multiple targets in the same 
+    # package based on variants
+    @contextmanager
+    def with_sub_builder_overrides(self, **kwargs):
+        old = {}
+        for key, new_value in kwargs.items():
+            old[key] = getattr(self, key)
+            setattr(self, key, new_value)
+        yield
+        for key, old_value in kwargs.items():
+            setattr(self, key, old_value)
 
-    def build_subdir(self, pkg, spec, prefix, builddir, variant):
-        """Make the build sub targets"""
-        if spec.satisfies(variant):
-            with fs.working_dir(builddir):
-                if self.generator == "Unix Makefiles":
-                    inspect.getmodule(self.pkg).make(*self.build_targets)
-                elif self.generator == "Ninja":
-                    self.build_targets.append("-v")
-                    inspect.getmodule(self.pkg).ninja(*self.build_targets)
+    def create_wrapped_method(self, method, variant, required_builder, overrides):
+        current_builder == type(self)
+        fn = getattr(self, method)
+        def wrapped(*args, **kwargs):
+            if required_builder == current_builder and self.spec.satisfies(variant):
+                with self.sub_builder_overrides(**overrides):
+                    return fn(*args, **kwargs)
 
-    def install_subdir(self, pkg, spec, prefix, builddir, variant):
-        """Make the install sub targets"""
-        if spec.satisfies(variant):
-            with fs.working_dir(builddir):
-                if self.generator == "Unix Makefiles":
-                    inspect.getmodule(self.pkg).make(*self.install_targets)
-                elif self.generator == "Ninja":
-                    inspect.getmodule(self.pkg).ninja(*self.install_targets)
 
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder, BuilderOverrider):
     def cmake(self, pkg, spec, prefix):
-        for builddir, listdir, cmake_args, variant in pkg.cmake_variant_subdirs():
-            self.cmake_subdir(pkg, spec, prefix, builddir, listdir, cmake_args, variant)
+        for sub_builder_def in pkg.variant_sub_builders():
+            cmake = self.wrapped_method("cmake", *sub_builder_def)
+            cmake(pkg, spec, prefix)
 
     def build(self, pkg, spec, prefix):
-        for builddir, listdir, cmake_args, variant in pkg.cmake_variant_subdirs():
-            self.build_subdir(pkg, spec, prefix, builddir, variant)
+        for sub_builder_def in pkg.variant_sub_builders():
+            build = self.wrapped_method("build", *sub_builder_def)
+            build(pkg, spec, prefix)
 
     def install(self, pkg, spec, prefix):
-        for builddir, listdir, cmake_args, variant in pkg.cmake_variant_subdirs():
-            self.install_subdir(pkg, spec, prefix, builddir, variant)
+        for sub_builder_def in pkg.variant_sub_builders():
+            install = self.wrapped_method("install", *sub_builder_def)
+            install(pkg, spec, prefix)
