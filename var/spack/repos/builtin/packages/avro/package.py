@@ -4,12 +4,13 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import inspect
-import os
-import contextlib
+import sys
 
 from llnl.util import filesystem as fs
 
-import spack.build_systems.cmake
+import spack.builder
+from spack.build_systems.cmake import CMakeBuilder
+from spack.build_systems.cargo import CargoBuilder
 from spack.package import *
 
 
@@ -28,10 +29,16 @@ class Avro(Package):
 
     list_url = "https://downloads.apache.org/avro/"
     list_depth = 1
-
-    variant("c", default=True, description="Built the C library")
-    variant("cxx", default=True, description="Built the C++ library")
+    
     # TODO: java, javascript, perl, python, ruby, rust
+    variant(
+        "language",
+        default="c,cxx",
+        values=("c", "cxx", "rust"),
+        multi=True,
+        description="Language bindings to build",
+    )
+    variant("ninja_generator", default=False, description="Use Ninja in CMake builds")
 
     # Had issues with linking in C lib on my build
     variant("snappy", default=True, description="Build with snappy support")
@@ -45,62 +52,146 @@ class Avro(Package):
     depends_on("snappy+shared", when="+snappy")
     depends_on("zlib-api")
 
-    with when("+c"):
+    with when("language=c,cxx"):
+        depends_on("cmake@2.6:", type="build")
+        depends_on("gmake", type="build", when="~ninja_generator")
+        depends_on("ninja", type="build", when="+ninja_generator")
+
+    with when("language=c"):
         depends_on("c", type="build")
         depends_on("asciidoc", type="build")
-        depends_on("cmake@2.6:")
         depends_on("jansson@2.3:", type=("build", "link"))
 
-    with when("+cxx"):
+    with when("language=cxx"):
         depends_on("cxx", type="build")
         depends_on(
             "boost@1.38:+iostreams+filesystem+system+program_options+regex visibility=global",
             type=("build", "link"),
         )
-        depends_on("cmake@2.6:")
+
+    with when("language=rust"):
+        depends_on("rust", type="build")
 
     @property
-    def variant_sub_builders(self):
-        return [
-            ("+c", CMakeBuilder, {"build_directory": "build/c", "root_cmakelists_dir": "lang/c"}),
-            ("+cxx", CMakeBuilder, {"build_directory": "build/c++", "root_cmakelists_dir": "lang/c++"}),
-        ]
+    def phases(self):
+        phases = ["setup_package"]
+        for builder in self.sub_builders():
+            for phase in builder.phases:
+                if phase not in phases:
+                    phases.append(phase)
+        return phases
 
 
-class BuilderOverrider:
-    # This is a hack to allow us to build multiple targets in the same 
-    # package based on variants
-    @contextlib.contextmanager
-    def with_sub_builder_overrides(self, **kwargs):
-        old = {}
-        for key, new_value in kwargs.items():
-            old[key] = getattr(self, key)
-            setattr(self, key, new_value)
-        yield
-        for key, old_value in kwargs.items():
-            setattr(self, key, old_value)
+    def build_when(self, variant, builder):
+        if self.spec.satisfies(variant):
+            return [builder]
+        else:
+            return []
+   
+    def sub_builders(self):
+        builders = []
+        builders += self.build_when("language=c", AvroCCMakeBuilder(self))
+        builders += self.build_when("language=cxx", AvroCXXCMakeBuilder(self))
+        builders += self.build_when("language=rust", AvroCargoBuilder(self))
+        return builders
+    
+    def get_phase_runner(self, name):
+        sub_phases = []
+        for builder in self.sub_builders():
+            if name in builder.phases:
+                sub_phases.append(getattr(builder, name))
 
-    def create_wrapped_method(self, method, variant, required_builder, overrides):
-        current_builder == type(self)
-        fn = getattr(self, method)
-        def wrapped(*args, **kwargs):
-            if required_builder == current_builder and self.spec.satisfies(variant):
-                with self.sub_builder_overrides(**overrides):
-                    return fn(*args, **kwargs)
+        def runner(*args):
+            for sub_phase in sub_phases:
+                sub_phase(self, *args)
+
+        return runner
+
+    def run_phase(self, name, *args):
+        self.get_phase_runner(name)(*args)
+
+    def setup_package(self, spec, prefix):
+        # Hack
+        for builder in self.sub_builders():
+            if hasattr(builder, "setup_package"):
+                builder.setup_package(self.module, spec)
+
+    def __getattr__(self, item):
+        if item in self.phases:
+            print(" GETTING PHASE", item)
+            return self.get_phase_runner(item)
+        else:
+            return super().__getattr__(item)
 
 
-class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder, BuilderOverrider):
-    def cmake(self, pkg, spec, prefix):
-        for sub_builder_def in pkg.variant_sub_builders():
-            cmake = self.wrapped_method("cmake", *sub_builder_def)
-            cmake(pkg, spec, prefix)
+class AvroSubBuilder(spack.builder.Builder):
+    sub_package = ...
+    create_build_dir = True
+
+    @property
+    def parent_build_directory(self):
+        return super().build_directory
+
+    @property
+    def build_directory(self):
+        build_dir = join_path(self.parent_build_directory, "build", self.sub_package)
+        if self.create_build_dir:
+            makedirs(build_dir, exist_ok=True)
+        return build_dir
+
+    @property
+    def sub_package_source(self):
+        return join_path(self.pkg.stage.source_path, "lang", self.sub_package)
+
+
+class AvroCMakeBuilder(AvroSubBuilder, CMakeBuilder):
+    phases = ["cmake", "build", "install"]
+
+    def setup_package(self, package, spec):
+        setattr(package, "cmake", which("cmake"))
+        if spec.satisfies("+ninja_generator"):
+            setattr(package, "ninja", which("ninja"))
+        else:
+            setattr(package, "make", which("make"))
+
+    @property
+    def generator(self):
+        if self.pkg.spec.satisfies("+ninja_generator"):
+            return "Ninja"
+        else:
+            return "Unix Makefiles"
+
+    @property
+    def root_cmakelists_dir(self):
+        return self.sub_package_source
+
+
+class AvroCCMakeBuilder(AvroCMakeBuilder):
+    sub_package = "c"
+
+
+class AvroCXXCMakeBuilder(AvroCMakeBuilder):
+    sub_package = "c++"
+
+
+class AvroCargoBuilder(AvroSubBuilder, CargoBuilder):
+    sub_package = "rust"
 
     def build(self, pkg, spec, prefix):
-        for sub_builder_def in pkg.variant_sub_builders():
-            build = self.wrapped_method("build", *sub_builder_def)
-            build(pkg, spec, prefix)
+        with fs.working_dir(join_path(self.sub_package_source, "avro")):
+            pkg.module.cargo(
+                "build",
+                "--all-features",
+                "--release",
+                "--lib",
+                "--workspace",
+                "--target-dir",
+                join_path(self.build_directory, "out"),
+                *self.build_args,
+            )
+    
+#    def install(self, pkg, spec, prefix):
+#        target = prefix.lib.avro.rust
+#        makedirs(target)
 
-    def install(self, pkg, spec, prefix):
-        for sub_builder_def in pkg.variant_sub_builders():
-            install = self.wrapped_method("install", *sub_builder_def)
-            install(pkg, spec, prefix)
+
