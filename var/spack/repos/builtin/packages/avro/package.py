@@ -70,7 +70,7 @@ class Avro(Package):
 class BuilderOverrider:
     # This is a hack to allow us to build multiple targets in the same 
     # package based on variants
-    @contextmanager
+    @contextlib.contextmanager
     def with_sub_builder_overrides(self, **kwargs):
         old = {}
         for key, new_value in kwargs.items():
