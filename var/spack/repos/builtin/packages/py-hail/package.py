@@ -19,6 +19,7 @@ class PyHail(MakefilePackage):
     maintainers("teaguesterling")
     license("MIT", checked_by="teaguesterling")
 
+    version("0.2.132", commit="4c60fddb171a52c21f41a81995c53a28e375c26b")
     version("0.2.132", commit="678e1f52b9999cb05ebf03fd360e5c4506bd6dad")
     version("0.2.131", commit="11d9b2ff89da9ef6a4f576be89f1f06959580ea4")
     version("0.2.130", commit="bea04d9c79b5ca739364e8c121132845475f617a")
