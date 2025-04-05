@@ -1,0 +1,14 @@
+diff --git a/gnu/argmatch.h b/gnu/argmatch.h
+index 9e8d217..4982257 100644
+--- a/gnu/argmatch.h
++++ b/gnu/argmatch.h
+@@ -46,7 +46,8 @@ extern "C" {
+ 
+ # define ARGMATCH_VERIFY(Arglist, Vallist) \
+     static_assert (ARRAY_CARDINALITY (Arglist) \
+-                   == ARRAY_CARDINALITY (Vallist) + 1)
++                   == ARRAY_CARDINALITY (Vallist) + 1, \
++                   "ARRAY_CARDINALITY (Arglist) != ARRAY_CARDINALITY (Vallist) + 1")
+ 
+ /* Return the index of the element of ARGLIST (NULL terminated) that
+    matches with ARG.  If VALLIST is not NULL, then use it to resolve

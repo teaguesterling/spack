@@ -53,6 +53,8 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
     patch("se-selinux.patch", when="@:1.29")
     patch("argp-pgi.patch", when="@:1.29")
     patch("gnutar-configure-xattrs.patch", when="@1.28")
+    # static_assert without an 2nd argument is only C++17 or newer
+    patch("icc-static-assert.patch", when="@1.35")
 
     # The NVIDIA compilers do not currently support some GNU builtins.
     # Detect this case and use the fallback path.
