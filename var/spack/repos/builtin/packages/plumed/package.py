@@ -27,6 +27,8 @@ class Plumed(AutotoolsPackage):
     git = "https://github.com/plumed/plumed2.git"
     maintainers("marcodelapierre")
 
+    tags = ["e4s"]
+
     license("LGPL-3.0-or-later")
 
     version("master", branch="master")
@@ -114,10 +116,6 @@ class Plumed(AutotoolsPackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
-
     # Variants. PLUMED by default builds a number of optional modules.
     # The ones listed here are not built by default for various reasons,
     # such as stability, lack of testing, or lack of demand.
@@ -191,6 +189,10 @@ class Plumed(AutotoolsPackage):
         description="Activates FireArray support",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Dependencies. LAPACK and BLAS are recommended but not essential.
     depends_on("zlib-api")
     depends_on("blas")
@@ -244,7 +246,7 @@ class Plumed(AutotoolsPackage):
 
     def setup_dependent_package(self, module, dependent_spec):
         # Make plumed visible from dependent packages
-        module.plumed = dependent_spec["plumed"].command
+        module.plumed = self.command
 
     @property
     def plumed_inc(self):

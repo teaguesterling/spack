@@ -24,6 +24,7 @@ class Fastjet(AutotoolsPackage):
 
     license("GPL-2.0-only")
 
+    version("3.4.3", sha256="cc175471bfab8656b8c6183a8e5e9ad05d5f7506e46f3212a9a8230905b8f6a3")
     version("3.4.2", sha256="b3d33155b55ce43f420cd6d99b525acf7bdc2593a7bb7ea898a9ddb3d8ca38e3")
     version("3.4.1", sha256="05608c6ff213f06dd9de723813d6b4dccd51e661ac13098f74bfc9eeaf1cb5aa")
     version("3.4.0", sha256="ee07c8747c8ead86d88de4a9e4e8d1e9e7d7614973f5631ba8297f7a02478b91")
@@ -113,6 +114,12 @@ class Fastjet(AutotoolsPackage):
         when="@3.4:3.4.1 +atlas",
         level=0,
     )
+    patch(
+        "https://gitlab.com/fastjet/fastjet/-/merge_requests/8.diff",
+        sha256="acc00a619c449552732935ec7a3bf8b191692bfff507cd01a0130c2b9586ba32",
+        level=1,
+        when="@2.4.0:3.4.3",
+    )
 
     def configure_args(self):
         extra_args = []
@@ -141,5 +148,5 @@ class Fastjet(AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         if name == "cxxflags":
-            flags.append(f"-std=c++{self.spec.variants['cxxstd'].value}")
+            flags.append(f"-O2 -Wall -std=c++{self.spec.variants['cxxstd'].value}")
         return (None, flags, None)
