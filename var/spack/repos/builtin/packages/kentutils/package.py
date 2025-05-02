@@ -45,6 +45,7 @@ class Kentutils(MakefilePackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
+    depends_on("rsync", type="build")
 
     with default_args(type=("build", "link", "run")):
         depends_on("libpng")
