@@ -6,22 +6,24 @@
 import re
 
 from spack.package import *
+from spack.build_systems.npm import NpmPackage
 
 
-class Typescript(Package):
+class Typescript(NpmPackage):
     """TypeScript is a superset of JavaScript that compiles to clean JavaScript output."""
+    
+    # Control whether to run the build script
+    has_build_script = False
 
     homepage = "https://www.typescriptlang.org"
-    url = "https://github.com/microsoft/TypeScript/archive/refs/tags/v5.3.2.tar.gz"
+    url = "https://registry.npmjs.org/typescript/-/typescript-5.3.2.tgz"
+    git = "https://github.com/microsoft/TypeScript.git"
 
     tags = ["build-tools"]
 
     license("Apache-2.0")
 
-    version("5.3.2", sha256="c5a12507006e7d2b8020dec9589191ce070fd88203f2c80aca00d641cee7866f")
-
-    depends_on("node-js", type=("build", "link", "run"))
-    depends_on("npm", type="build")
+    version("5.3.2", sha256="62d487dcc3e0f4cfaa3b752f282807e6cb34e5f9d4ea82cd8aa5071e713c21f1")
 
     executables = ["^tsc$"]
 
@@ -30,7 +32,3 @@ class Typescript(Package):
         output = Executable(exe)("--version", output=str, error=str)
         match = re.match(r"Version\s+([\d.]+)\s*", output)
         return match.group(1) if match else None
-
-    def install(self, spec, prefix):
-        npm = which("npm", required=True)
-        npm("install", "--global", f"--prefix={prefix}")

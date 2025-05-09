@@ -136,3 +136,8 @@ class Npm(Package):
         npm_config_cache_dir = "%s/npm-cache" % dependent_spec.prefix
         env.set("npm_config_cache", npm_config_cache_dir)
         env.set("npm_config_install_links", "true")
+        
+    def setup_dependent_package(self, module, dependent_spec):
+        """Called before npm modules' build(), install() methods."""
+        # Add npm executable to dependent modules
+        module.npm = Executable(os.path.join(self.spec.prefix.bin, "npm"))
